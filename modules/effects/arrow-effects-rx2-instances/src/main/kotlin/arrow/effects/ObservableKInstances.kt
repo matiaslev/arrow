@@ -4,11 +4,22 @@ import arrow.Kind
 import arrow.core.Either
 import arrow.core.Eval
 import arrow.deprecation.ExtensionsDSLDeprecated
-import arrow.effects.observablek.monad.monad
-import arrow.effects.observablek.monadError.monadError
-import arrow.effects.typeclasses.*
+import arrow.effects.typeclasses.Async
+import arrow.effects.typeclasses.Bracket
+import arrow.effects.typeclasses.ConcurrentEffect
+import arrow.effects.typeclasses.Disposable
+import arrow.effects.typeclasses.Effect
+import arrow.effects.typeclasses.ExitCase
+import arrow.effects.typeclasses.MonadDefer
+import arrow.effects.typeclasses.Proc
 import arrow.extension
-import arrow.typeclasses.*
+import arrow.typeclasses.Applicative
+import arrow.typeclasses.ApplicativeError
+import arrow.typeclasses.Foldable
+import arrow.typeclasses.Functor
+import arrow.typeclasses.Monad
+import arrow.typeclasses.MonadError
+import arrow.typeclasses.Traverse
 import kotlin.coroutines.CoroutineContext
 
 @extension
@@ -94,9 +105,15 @@ interface ObservableKMonadErrorInstance :
 }
 
 @extension
+interface ObservableKBracketInstance : ObservableKMonadErrorInstance, Bracket<ForObservableK, Throwable> {
+  override fun <A, B> Kind<ForObservableK, A>.bracketCase(use: (A) -> Kind<ForObservableK, B>, release: (A, ExitCase<Throwable>) -> Kind<ForObservableK, Unit>): ObservableK<B> =
+    fix().bracketCase({ a -> use(a).fix() }, { a, e -> release(a, e).fix() })
+}
+
+@extension
 interface ObservableKMonadDeferInstance :
-  MonadDefer<ForObservableK>,
-  ObservableKMonadErrorInstance {
+  ObservableKBracketInstance,
+  MonadDefer<ForObservableK> {
   override fun <A> defer(fa: () -> ObservableKOf<A>): ObservableK<A> =
     ObservableK.defer(fa)
 }
