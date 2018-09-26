@@ -5,11 +5,18 @@ import arrow.core.Either
 import arrow.core.Eval
 import arrow.deprecation.ExtensionsDSLDeprecated
 import arrow.effects.typeclasses.Async
+import arrow.effects.typeclasses.Bracket
 import arrow.effects.typeclasses.Effect
+import arrow.effects.typeclasses.ExitCase
 import arrow.effects.typeclasses.MonadDefer
 import arrow.effects.typeclasses.Proc
 import arrow.extension
-import arrow.typeclasses.*
+import arrow.typeclasses.Applicative
+import arrow.typeclasses.ApplicativeError
+import arrow.typeclasses.Foldable
+import arrow.typeclasses.Functor
+import arrow.typeclasses.Monad
+import arrow.typeclasses.MonadError
 import kotlin.coroutines.CoroutineContext
 
 @extension
@@ -93,9 +100,15 @@ interface MaybeKMonadErrorInstance :
 }
 
 @extension
+interface MaybeKBracketInstance : MaybeKMonadErrorInstance, Bracket<ForMaybeK, Throwable> {
+  override fun <A, B> Kind<ForMaybeK, A>.bracketCase(use: (A) -> Kind<ForMaybeK, B>, release: (A, ExitCase<Throwable>) -> Kind<ForMaybeK, Unit>): MaybeK<B> =
+    fix().bracketCase({ a -> use(a).fix() }, { a, e -> release(a, e).fix() })
+}
+
+@extension
 interface MaybeKMonadDeferInstance :
-  MonadDefer<ForMaybeK>,
-  MaybeKMonadErrorInstance {
+  MaybeKBracketInstance,
+  MonadDefer<ForMaybeK> {
   override fun <A> defer(fa: () -> MaybeKOf<A>): MaybeK<A> =
     MaybeK.defer(fa)
 }
