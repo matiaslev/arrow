@@ -4,14 +4,22 @@ import arrow.Kind
 import arrow.core.Either
 import arrow.core.Eval
 import arrow.deprecation.ExtensionsDSLDeprecated
-import arrow.effects.flowablek.async.async
-import arrow.effects.flowablek.effect.effect
-import arrow.effects.flowablek.monad.monad
-import arrow.effects.flowablek.monadDefer.monadDefer
-import arrow.effects.flowablek.monadError.monadError
-import arrow.effects.typeclasses.*
+import arrow.effects.typeclasses.Async
+import arrow.effects.typeclasses.Bracket
+import arrow.effects.typeclasses.ConcurrentEffect
+import arrow.effects.typeclasses.Disposable
+import arrow.effects.typeclasses.Effect
+import arrow.effects.typeclasses.ExitCase
+import arrow.effects.typeclasses.MonadDefer
+import arrow.effects.typeclasses.Proc
 import arrow.extension
-import arrow.typeclasses.*
+import arrow.typeclasses.Applicative
+import arrow.typeclasses.ApplicativeError
+import arrow.typeclasses.Foldable
+import arrow.typeclasses.Functor
+import arrow.typeclasses.Monad
+import arrow.typeclasses.MonadError
+import arrow.typeclasses.Traverse
 import io.reactivex.BackpressureStrategy
 import kotlin.coroutines.CoroutineContext
 
@@ -98,9 +106,15 @@ interface FlowableKMonadErrorInstance :
 }
 
 @extension
+interface FlowableKBracketInstance : FlowableKMonadErrorInstance, Bracket<ForFlowableK, Throwable> {
+  override fun <A, B> Kind<ForFlowableK, A>.bracketCase(use: (A) -> Kind<ForFlowableK, B>, release: (A, ExitCase<Throwable>) -> Kind<ForFlowableK, Unit>): FlowableK<B> =
+    fix().bracketCase({ a -> use(a).fix() }, { a, e -> release(a, e).fix() })
+}
+
+@extension
 interface FlowableKMonadDeferInstance :
   MonadDefer<ForFlowableK>,
-  FlowableKMonadErrorInstance {
+  FlowableKBracketInstance {
   override fun <A> defer(fa: () -> FlowableKOf<A>): FlowableK<A> =
     FlowableK.defer(fa)
 
