@@ -3,9 +3,20 @@ package arrow.effects
 import arrow.Kind
 import arrow.core.Either
 import arrow.deprecation.ExtensionsDSLDeprecated
-import arrow.effects.typeclasses.*
+import arrow.effects.typeclasses.Async
+import arrow.effects.typeclasses.Bracket
+import arrow.effects.typeclasses.ConcurrentEffect
+import arrow.effects.typeclasses.Disposable
+import arrow.effects.typeclasses.Effect
+import arrow.effects.typeclasses.ExitCase
+import arrow.effects.typeclasses.MonadDefer
+import arrow.effects.typeclasses.Proc
 import arrow.extension
-import arrow.typeclasses.*
+import arrow.typeclasses.Applicative
+import arrow.typeclasses.ApplicativeError
+import arrow.typeclasses.Functor
+import arrow.typeclasses.Monad
+import arrow.typeclasses.MonadError
 import kotlin.coroutines.CoroutineContext
 
 @extension
@@ -67,9 +78,13 @@ interface SingleKMonadErrorInstance :
 }
 
 @extension
-interface SingleKMonadDeferInstance :
-  MonadDefer<ForSingleK>,
-  SingleKMonadErrorInstance {
+interface SingleKBracketInstance : SingleKMonadErrorInstance, Bracket<ForSingleK, Throwable> {
+  override fun <A, B> Kind<ForSingleK, A>.bracketCase(use: (A) -> Kind<ForSingleK, B>, release: (A, ExitCase<Throwable>) -> Kind<ForSingleK, Unit>): SingleK<B> =
+    this@bracketCase.fix().bracketCase({ a -> use(a).fix() }, { a, e -> release(a, e).fix() })
+}
+
+@extension
+interface SingleKMonadDeferInstance : SingleKBracketInstance, MonadDefer<ForSingleK> {
   override fun <A> defer(fa: () -> SingleKOf<A>): SingleK<A> =
     SingleK.defer(fa)
 }
