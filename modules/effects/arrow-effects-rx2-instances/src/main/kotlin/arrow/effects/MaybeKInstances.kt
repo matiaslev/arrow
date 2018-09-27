@@ -102,7 +102,7 @@ interface MaybeKMonadErrorInstance :
 @extension
 interface MaybeKBracketInstance : MaybeKMonadErrorInstance, Bracket<ForMaybeK, Throwable> {
   override fun <A, B> Kind<ForMaybeK, A>.bracketCase(use: (A) -> Kind<ForMaybeK, B>, release: (A, ExitCase<Throwable>) -> Kind<ForMaybeK, Unit>): MaybeK<B> =
-    fix().bracketCase({ a -> use(a).fix() }, { a, e -> release(a, e).fix() })
+    fix().bracketCase({ use(it) }, { a, e -> release(a, e) })
 }
 
 @extension
