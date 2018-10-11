@@ -6,6 +6,7 @@ import arrow.core.Right
 import arrow.core.Try
 import arrow.core.andThen
 import arrow.core.identity
+import arrow.effects.internal.IOConnection
 import arrow.effects.typeclasses.Disposable
 import arrow.effects.typeclasses.ExitCase
 import arrow.effects.typeclasses.Proc
@@ -86,7 +87,7 @@ data class DeferredK<out A>(val deferred: Deferred<A>) : DeferredKOf<A>, Deferre
     fun <A> async(ctx: CoroutineContext = Dispatchers.Default, start: CoroutineStart = CoroutineStart.DEFAULT, fa: Proc<A>): DeferredK<A> =
       GlobalScope.async(ctx, start) {
         CompletableDeferred<A>().apply {
-          fa {
+          fa(IOConnection()) {
             it.fold(this::cancel, this::complete)
           }
         }.await()
