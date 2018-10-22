@@ -4,6 +4,7 @@ import arrow.effects.typeclasses.ExitCase
 import arrow.test.UnitSpec
 import arrow.typeclasses.Eq
 import io.kotlintest.KTestJUnitRunner
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
@@ -125,8 +126,9 @@ class FluxKTest : UnitSpec() {
 
       test
         .thenAwait(Duration.ofSeconds(5))
+        .then { assertThat(ec, `is`(ExitCase.Cancelled as ExitCase<Throwable>)) }
         .thenCancel()
-        .verifyThenAssertThat()
+        .verify()
     }
   }
 }
