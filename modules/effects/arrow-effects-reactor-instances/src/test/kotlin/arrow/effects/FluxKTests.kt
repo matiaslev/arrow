@@ -1,15 +1,26 @@
 package arrow.effects
 
+import arrow.effects.fluxk.async.async
+import arrow.effects.fluxk.foldable.foldable
+import arrow.effects.fluxk.functor.functor
+import arrow.effects.fluxk.traverse.traverse
 import arrow.effects.typeclasses.ExitCase
 import arrow.test.UnitSpec
+import arrow.test.laws.AsyncLaws
+import arrow.test.laws.FoldableLaws
+import arrow.test.laws.TraverseLaws
 import arrow.typeclasses.Eq
+import arrow.typeclasses.binding
+import arrow.typeclasses.bindingCatch
 import io.kotlintest.KTestJUnitRunner
+import io.kotlintest.matchers.shouldNotBe
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.runner.RunWith
 import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import reactor.test.test
 import java.time.Duration
 
@@ -43,7 +54,7 @@ class FluxKTest : UnitSpec() {
   }
 
   init {
-/*
+
     testLaws(
       AsyncLaws.laws(FluxK.async(), EQ(), EQ()),
       FoldableLaws.laws(FluxK.foldable(), { FluxK.just(it) }, Eq.any()),
@@ -105,7 +116,7 @@ class FluxKTest : UnitSpec() {
         .verifyThenAssertThat()
         .hasNotDroppedElements()
         .hasNotDroppedErrors()
-    }*/
+    }
 
     "Flux bracket cancellation should release resource with cancel exit status" {
       lateinit var ec: ExitCase<Throwable>
