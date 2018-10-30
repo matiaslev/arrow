@@ -4,6 +4,11 @@ import arrow.Kind
 import arrow.core.Either
 import arrow.core.Eval
 import arrow.deprecation.ExtensionsDSLDeprecated
+import arrow.effects.flowablek.async.async
+import arrow.effects.flowablek.effect.effect
+import arrow.effects.flowablek.monad.monad
+import arrow.effects.flowablek.monadDefer.monadDefer
+import arrow.effects.flowablek.monadError.monadError
 import arrow.effects.typeclasses.Async
 import arrow.effects.typeclasses.Bracket
 import arrow.effects.typeclasses.ConcurrentEffect

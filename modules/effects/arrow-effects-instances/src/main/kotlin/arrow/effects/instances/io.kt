@@ -97,7 +97,7 @@ interface IOBracketInstance : IOMonadErrorInstance, Bracket<ForIO, Throwable> {
 }
 
 @extension
-interface IOMonadDeferInstance : IOBracketInstance, MonadDefer<ForIO> {
+interface IOMonadDeferInstance : MonadDefer<ForIO>, IOBracketInstance {
   override fun <A> defer(fa: () -> IOOf<A>): IO<A> =
     IO.defer(fa)
 

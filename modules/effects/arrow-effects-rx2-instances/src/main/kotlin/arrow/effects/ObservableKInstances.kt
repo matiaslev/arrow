@@ -4,6 +4,8 @@ import arrow.Kind
 import arrow.core.Either
 import arrow.core.Eval
 import arrow.deprecation.ExtensionsDSLDeprecated
+import arrow.effects.observablek.monad.monad
+import arrow.effects.observablek.monadError.monadError
 import arrow.effects.typeclasses.Async
 import arrow.effects.typeclasses.Bracket
 import arrow.effects.typeclasses.ConcurrentEffect
@@ -105,15 +107,13 @@ interface ObservableKMonadErrorInstance :
 }
 
 @extension
-interface ObservableKBracketInstance : ObservableKMonadErrorInstance, Bracket<ForObservableK, Throwable> {
+interface ObservableKBracketInstance : Bracket<ForObservableK, Throwable>, ObservableKMonadErrorInstance {
   override fun <A, B> Kind<ForObservableK, A>.bracketCase(use: (A) -> Kind<ForObservableK, B>, release: (A, ExitCase<Throwable>) -> Kind<ForObservableK, Unit>): ObservableK<B> =
     fix().bracketCase({ use(it) }, { a, e -> release(a, e) })
 }
 
 @extension
-interface ObservableKMonadDeferInstance :
-  ObservableKBracketInstance,
-  MonadDefer<ForObservableK> {
+interface ObservableKMonadDeferInstance : MonadDefer<ForObservableK>, ObservableKBracketInstance {
   override fun <A> defer(fa: () -> ObservableKOf<A>): ObservableK<A> =
     ObservableK.defer(fa)
 }
